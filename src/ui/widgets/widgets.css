@@ -1,0 +1,1487 @@
+/* The widgets' styles: VS Code's metrics (sizes, paddings, radii as in its workbench CSS), and colours taken only
+   from the theme's variables (ui/theme.css), so Dark+, Light+ and High Contrast all follow. */
+
+/* ------------------------------------------------------------------ derived colours and layout values */
+
+:root {
+  /* Colours VS Code has that the theme doesn't name, mixed from the theme's own. */
+  --wg-toolbar-hover: color-mix(in srgb, var(--icon) 10%, transparent);
+  --wg-toolbar-active: color-mix(in srgb, var(--icon) 15%, transparent);
+  --wg-option-hover: color-mix(in srgb, var(--icon) 17%, transparent);
+  --wg-hl-sel: var(--list-highlight);
+  --wg-error-bg: color-mix(in srgb, var(--error-strong) 25%, var(--editor-bg));
+  --wg-quick-title-bg: color-mix(in srgb, var(--fg-strong) 10%, transparent);
+  --wg-kb-bg: color-mix(in srgb, var(--fg) 10%, transparent);
+  --wg-kb-border: color-mix(in srgb, var(--fg) 22%, transparent);
+  /* Where the quick input hangs (under the title bar) and what the toasts stay above (the status bar); the
+     workbench sets them to its own sizes. */
+  --wg-titlebar-height: 35px;
+  --wg-statusbar-height: 22px;
+}
+
+:root[data-theme='light'] {
+  /* A match on a blue selected row needs a light colour (VS Code's list.focusHighlightForeground). */
+  --wg-hl-sel: color-mix(in srgb, var(--list-active-fg) 70%, var(--list-highlight));
+  --wg-error-bg: color-mix(in srgb, var(--error-strong) 12%, var(--editor-bg));
+}
+
+:root[data-theme='hc'] {
+  --wg-error-bg: var(--editor-bg);
+}
+
+/* ------------------------------------------------------------------ shared */
+
+@keyframes wg-fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes wg-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.wg-spin {
+  /* Steps keep the frame rate (and the processor) low, as Monaco's own spinner does. */
+  animation: wg-spin 1.5s steps(30) infinite;
+  transform-origin: center center;
+}
+
+/* Thin scrollbars like VS Code's: 10px, no arrows, the slider shown while the pointer is over the area. */
+.wg-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.wg-scroll::-webkit-scrollbar-track,
+.wg-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.wg-scroll::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.wg-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+.wg-scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--scroll);
+}
+.wg-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-hover);
+}
+.wg-scroll::-webkit-scrollbar-thumb:active {
+  background: var(--scroll-active);
+}
+
+.wg-list,
+.wg-menu,
+.wg-quick,
+.wg-dialog,
+.wg-toasts,
+.wg-notify-center,
+.wg-inputbox-container,
+.wg-checkbox-row,
+.wg-select,
+.wg-button {
+  font-family: var(--font);
+  font-size: var(--font-size, 13px);
+}
+
+/* Matches in filtered labels. */
+.wg-hl {
+  font-weight: bold;
+  color: var(--list-highlight);
+}
+
+/* ------------------------------------------------------------------ action bar */
+
+.wg-actionbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.wg-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 3px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--icon);
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+}
+.wg-action:hover {
+  background: var(--wg-toolbar-hover);
+}
+.wg-action:active {
+  background: var(--wg-toolbar-active);
+}
+.wg-action:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+.wg-action.checked {
+  background: var(--option-active-bg);
+  outline: 1px solid var(--option-active-border);
+  outline-offset: -1px;
+}
+.wg-action.disabled,
+.wg-action.disabled:hover {
+  background: transparent;
+  color: var(--fg-disabled);
+  cursor: default;
+}
+.wg-action > .codicon {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+:root[data-theme='hc'] .wg-action:not(.disabled):hover {
+  background: transparent;
+  outline: 1px dashed var(--focus);
+  outline-offset: -1px;
+}
+
+/* ------------------------------------------------------------------ virtual list */
+
+.wg-list {
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  outline: none;
+  color: var(--fg);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wg-list-rows {
+  position: relative;
+  min-width: 100%;
+}
+
+.wg-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.wg-row:hover:not(.selected) {
+  background: var(--list-hover);
+}
+.wg-row.selected {
+  background: var(--list-inactive-bg);
+}
+.wg-list:focus-within .wg-row.selected {
+  background: var(--list-active-bg);
+  color: var(--list-active-fg);
+}
+.wg-list:focus-within .wg-row.focused {
+  outline: 1px solid var(--list-focus-outline);
+  outline-offset: -1px;
+}
+.wg-list:focus-within .wg-row.selected .wg-hl {
+  color: var(--wg-hl-sel);
+}
+:root[data-theme='hc'] .wg-row:hover:not(.selected) {
+  outline: 1px dashed var(--focus);
+  outline-offset: -1px;
+}
+:root[data-theme='hc'] .wg-row.selected {
+  outline: 1px dotted var(--focus);
+  outline-offset: -1px;
+}
+:root[data-theme='hc'] .wg-list:focus-within .wg-row.focused {
+  outline: 1px solid var(--focus);
+}
+
+/* The shadow under the top edge of a scrolled list. */
+.wg-list-shadow {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 3px;
+  margin-bottom: -3px;
+  pointer-events: none;
+}
+.wg-list-shadow.on {
+  box-shadow: var(--shadow) 0 6px 6px -6px inset;
+}
+
+.wg-list-empty {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 20px;
+  color: var(--fg-muted);
+  line-height: 1.4;
+  white-space: normal;
+  cursor: default;
+}
+
+/* ------------------------------------------------------------------ tree row */
+
+.wg-tree-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.wg-tree-guides {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+}
+.wg-tree-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px solid var(--tree-indent);
+  transition: opacity 0.1s linear;
+}
+/* VS Code's default (workbench.tree.renderIndentGuides "onHover"): guides only while the pointer is over the tree. */
+.wg-guides-hover .wg-tree-guide {
+  opacity: 0;
+}
+.wg-guides-hover:hover .wg-tree-guide {
+  opacity: 1;
+}
+
+.wg-twistie {
+  box-sizing: content-box;
+  flex-shrink: 0;
+  width: 16px;
+  height: 100%;
+  padding-right: 6px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: var(--icon);
+  /* VS Code nudges the chevron right of its box. */
+  transform: translateX(3px);
+}
+.wg-twistie.collapsed::before {
+  transform: rotate(-90deg);
+}
+/* Only the glyph turns while loading (the whole box would wobble with its indentation). */
+.wg-twistie.codicon-loading {
+  animation: none;
+}
+.wg-twistie.codicon-loading::before {
+  animation: wg-spin 1.25s steps(30) infinite;
+}
+
+.wg-tree-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 100%;
+  margin-right: 6px;
+}
+
+.wg-tree-label-container {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wg-tree-label {
+  white-space: pre;
+}
+.wg-tree-desc {
+  margin-left: 0.5em;
+  font-size: 0.9em;
+  color: var(--fg-muted);
+  white-space: pre;
+}
+
+.wg-tree-row.decorated .wg-tree-label,
+.wg-tree-row.decorated .wg-tree-badge {
+  color: var(--wg-deco);
+}
+.wg-tree-row.italic .wg-tree-label,
+.wg-tree-row.italic .wg-tree-desc {
+  font-style: italic;
+}
+.wg-tree-row.strike .wg-tree-label {
+  text-decoration: line-through;
+}
+.wg-tree-row.faded .wg-tree-icon,
+.wg-tree-row.faded .wg-tree-label-container,
+.wg-tree-row.faded .wg-tree-badge {
+  opacity: 0.55;
+}
+
+.wg-tree-badge {
+  flex-shrink: 0;
+  margin: 0 12px 0 5px;
+  font-size: 90%;
+  font-weight: 600;
+  opacity: 0.75;
+  text-align: center;
+}
+
+.wg-tree-actions {
+  display: none;
+  gap: 0;
+  margin-left: 4px;
+}
+.wg-tree-actions:last-child {
+  margin-right: 8px;
+}
+.wg-row:hover .wg-tree-actions,
+.wg-row.selected .wg-tree-actions,
+.wg-row.focused .wg-tree-actions,
+/* A tree row drawn outside a virtual list (no .wg-row around it) still shows its actions under the pointer and while
+   the keyboard is in it: hidden for good, they could never be used. */
+.wg-tree-row:hover > .wg-tree-actions,
+.wg-tree-row:focus-within > .wg-tree-actions {
+  display: flex;
+}
+.wg-tree-actions .wg-action {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+}
+
+/* In a focused list, a selected row's text and icons take the selection's colour. */
+.wg-list:focus-within .wg-row.selected .wg-tree-label,
+.wg-list:focus-within .wg-row.selected .wg-tree-badge,
+.wg-list:focus-within .wg-row.selected .wg-tree-desc,
+.wg-list:focus-within .wg-row.selected .wg-twistie,
+.wg-list:focus-within .wg-row.selected .wg-tree-actions .wg-action {
+  color: inherit;
+}
+.wg-list:focus-within .wg-row.selected .wg-tree-desc {
+  opacity: 0.8;
+}
+
+/* ------------------------------------------------------------------ context menu */
+
+.wg-menu-host {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 2500;
+  outline: none;
+}
+
+.wg-menu {
+  position: fixed;
+  box-sizing: border-box;
+  min-width: 160px;
+  max-width: calc(100vw - 8px);
+  padding: 4px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--menu-bg);
+  color: var(--menu-fg);
+  border: 1px solid var(--menu-border);
+  border-radius: 5px;
+  box-shadow: 0 2px 8px var(--shadow);
+  line-height: normal;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: wg-fadein 83ms linear;
+}
+:root[data-theme='hc'] .wg-menu {
+  box-shadow: none;
+}
+
+.wg-menu-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 26px;
+  margin: 0 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.wg-menu-item.active {
+  background: var(--menu-sel-bg);
+  color: var(--menu-sel-fg);
+}
+.wg-menu-item.disabled > * {
+  opacity: 0.4;
+}
+:root[data-theme='hc'] .wg-menu-item.active {
+  background: transparent;
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+
+.wg-menu-check {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wg-menu-label {
+  flex: 1 1 auto;
+  padding: 0 26px;
+}
+
+.wg-menu-key {
+  flex: 2 1 auto;
+  padding: 0 26px;
+  text-align: right;
+}
+
+.wg-menu .wg-menu-sub.codicon {
+  flex-shrink: 0;
+  margin: 0 6px 0 -16px;
+}
+
+.wg-menu-sep {
+  height: 0;
+  margin: 5px 0;
+  border-bottom: 1px solid var(--menu-sep);
+}
+
+/* ------------------------------------------------------------------ quick input */
+
+.wg-quick {
+  position: fixed;
+  z-index: 2550;
+  top: var(--wg-titlebar-height);
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 600px;
+  max-width: calc(100vw - 20px);
+  max-height: 60vh;
+  overflow: hidden;
+  background: var(--quick-bg);
+  color: var(--fg);
+  border-radius: 6px;
+  box-shadow: 0 0 8px 2px var(--shadow);
+  line-height: normal;
+}
+.wg-quick.no-list {
+  padding-bottom: 4px;
+}
+:root[data-theme='hc'] .wg-quick {
+  border: 1px solid var(--widget-border);
+  box-shadow: none;
+}
+
+.wg-quick-title {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  line-height: 18px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--wg-quick-title-bg);
+}
+
+.wg-quick-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 6px 2px 6px;
+}
+
+.wg-quick-check-all {
+  margin: 4px 5px 0 0;
+}
+
+.wg-quick-filter {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.wg-quick-count {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.wg-quick .wg-quick-ok {
+  margin-left: 6px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.wg-quick-message {
+  padding: 5px;
+  margin-top: -1px;
+  line-height: 17px;
+  overflow-wrap: break-word;
+}
+.wg-quick-message.error {
+  background: var(--wg-error-bg);
+  border: 1px solid var(--error-strong);
+}
+.wg-quick > .wg-quick-message.error {
+  margin: 0 6px 4px;
+}
+
+.wg-quick-list {
+  flex: 0 1 auto;
+  min-height: 0;
+  box-sizing: content-box;
+  padding: 0 5px 5px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  line-height: 22px;
+}
+.wg-quick-list.empty {
+  display: none;
+}
+.wg-quick-rows {
+  position: relative;
+}
+
+.wg-quick-empty {
+  padding: 2px 16px 6px;
+  line-height: 22px;
+  color: var(--fg-muted);
+}
+
+.wg-qrow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.wg-qrow:hover:not(.focused) {
+  background: var(--list-hover);
+}
+.wg-qrow.focused {
+  background: var(--quick-sel);
+  color: var(--list-active-fg);
+}
+.wg-qrow.focused .wg-hl {
+  color: var(--wg-hl-sel);
+}
+:root[data-theme='hc'] .wg-qrow.focused {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+:root[data-theme='hc'] .wg-qrow:hover:not(.focused) {
+  outline: 1px dashed var(--focus);
+  outline-offset: -1px;
+}
+
+.wg-qrow-entry {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0 6px;
+  overflow: hidden;
+}
+.wg-qrow.group-start .wg-qrow-entry {
+  border-top: 1px solid var(--picker-border);
+}
+
+.wg-qrow .wg-qrow-check {
+  margin-right: 5px;
+}
+
+.wg-qrow .wg-qrow-icon.codicon {
+  flex-shrink: 0;
+  box-sizing: content-box;
+  width: 16px;
+  padding-right: 6px;
+}
+.wg-qrow.two-line .wg-qrow-icon.codicon {
+  align-self: flex-start;
+  margin-top: 3px;
+}
+
+.wg-qrow-rows {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  margin-left: 5px;
+  overflow: hidden;
+}
+.wg-qrow-icon + .wg-qrow-rows {
+  margin-left: 0;
+}
+
+.wg-qrow-line {
+  display: flex;
+  align-items: baseline;
+  height: 22px;
+  line-height: 22px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wg-qrow-label {
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+.wg-qrow-desc {
+  flex-shrink: 1;
+  min-width: 0;
+  margin-left: 0.5em;
+  font-size: 0.9em;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+}
+:root[data-theme='light'] .wg-qrow-desc {
+  opacity: 0.95;
+}
+.wg-qrow.focused .wg-qrow-desc {
+  opacity: 0.8;
+}
+.wg-qrow-detail {
+  height: 22px;
+  line-height: 18px;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wg-qrow-kb {
+  flex-shrink: 0;
+  margin: 0 8px;
+}
+.wg-qrow-sep {
+  flex-shrink: 0;
+  margin: 0 4px 0 8px;
+  color: var(--picker-group);
+}
+.wg-qrow.focused .wg-qrow-sep {
+  color: inherit;
+}
+
+.wg-qrow-buttons {
+  display: none;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+.wg-qrow:hover .wg-qrow-buttons,
+.wg-qrow.focused .wg-qrow-buttons {
+  display: flex;
+}
+.wg-qrow-buttons .wg-action {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  color: inherit;
+}
+
+/* Key caps of a key binding. */
+.wg-kb {
+  display: inline-flex;
+  align-items: center;
+  line-height: 10px;
+  white-space: nowrap;
+}
+.wg-kb-key {
+  display: inline-block;
+  margin: 0 2px;
+  padding: 3px 5px;
+  border: 1px solid var(--wg-kb-border);
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 var(--wg-kb-border);
+  background: var(--wg-kb-bg);
+  color: inherit;
+  font-family: inherit;
+  font-size: 11px;
+  vertical-align: middle;
+}
+.wg-kb-key:first-child {
+  margin-left: 0;
+}
+.wg-kb-key:last-child {
+  margin-right: 0;
+}
+.wg-kb-chord-sep {
+  display: inline-block;
+  width: 6px;
+}
+.wg-qrow.focused .wg-kb-key {
+  background: transparent;
+}
+
+/* ------------------------------------------------------------------ inputs */
+
+.wg-inputbox-container {
+  position: relative;
+}
+
+.wg-inputbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border: 1px solid var(--input-border);
+  border-radius: 2px;
+}
+.wg-inputbox:focus-within {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+.wg-inputbox.error,
+.wg-inputbox.error:focus-within {
+  border-color: var(--error-strong);
+  outline-color: var(--error-strong);
+}
+.wg-inputbox.disabled {
+  opacity: 0.6;
+}
+
+.wg-input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 24px;
+  margin: 0;
+  padding: 4px 6px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 16px;
+  text-overflow: ellipsis;
+}
+.wg-input::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+
+.wg-findinput-controls {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 2px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.wg-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 1px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--icon);
+  cursor: pointer;
+  outline: none;
+}
+.wg-toggle:hover {
+  background: var(--wg-option-hover);
+}
+.wg-toggle.checked {
+  border-color: var(--option-active-border);
+  background: var(--option-active-bg);
+  color: var(--fg-strong);
+}
+.wg-toggle:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: 0;
+}
+:root[data-theme='hc'] .wg-toggle:hover:not(.checked) {
+  background: transparent;
+  border: 1px dashed var(--focus);
+}
+
+/* The message box under an input, over what follows (as VS Code's validation message). */
+.wg-input-message {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  box-sizing: border-box;
+  margin-top: -1px;
+  padding: 0.4em;
+  font-size: 12px;
+  line-height: 17px;
+  text-align: left;
+  overflow-wrap: break-word;
+  color: var(--fg);
+}
+.wg-input-message.error {
+  background: var(--wg-error-bg);
+  border: 1px solid var(--error-strong);
+}
+
+/* Checkbox */
+.wg-checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  color: var(--fg);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.wg-checkbox-row.disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.wg-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--checkbox-border);
+  border-radius: 3px;
+  background: var(--checkbox-bg);
+  color: var(--fg-strong);
+  cursor: pointer;
+  outline: none;
+}
+.wg-checkbox:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+.wg-checkbox-label {
+  margin-left: 9px;
+}
+
+/* Select */
+.wg-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+.wg-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: 100%;
+  height: 26px;
+  margin: 0;
+  padding: 2px 23px 2px 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 2px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+}
+.wg-select select:focus {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+.wg-select option {
+  background: var(--input-bg);
+  color: var(--input-fg);
+}
+.wg-select > .codicon {
+  position: absolute;
+  right: 5px;
+  pointer-events: none;
+  color: var(--icon);
+}
+.wg-select.disabled {
+  opacity: 0.4;
+}
+
+/* Button */
+.wg-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 26px;
+  margin: 0;
+  padding: 4px 11px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font: inherit;
+  line-height: 16px;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+}
+.wg-button:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: 2px;
+}
+.wg-button-primary {
+  background: var(--button-bg);
+  color: var(--button-fg);
+}
+.wg-button-primary:not(:disabled):hover {
+  background: var(--button-hover);
+}
+.wg-button-secondary {
+  background: var(--button2-bg);
+  color: var(--button2-fg);
+}
+.wg-button-secondary:not(:disabled):hover {
+  background: var(--button2-hover);
+}
+.wg-button-danger {
+  background: var(--danger-bg);
+  color: var(--button-fg);
+}
+.wg-button-danger:not(:disabled):hover {
+  background: var(--danger-hover);
+}
+.wg-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+:root[data-theme='hc'] .wg-button {
+  border-color: var(--widget-border);
+}
+:root[data-theme='hc'] .wg-button:not(:disabled):hover {
+  outline: 1px dashed var(--focus);
+  outline-offset: -1px;
+}
+
+/* Count badge */
+.wg-badge {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 3px 6px;
+  border-radius: 11px;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-size: 11px;
+  font-weight: normal;
+  line-height: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+.wg-badge.accent {
+  background: var(--badge-accent);
+  color: var(--button-fg);
+}
+.wg-badge.long {
+  min-height: auto;
+  padding: 2px 4px;
+  border-radius: 2px;
+  line-height: normal;
+}
+:root[data-theme='hc'] .wg-badge {
+  border: 1px solid var(--widget-border);
+}
+
+/* Progress bar */
+.wg-progress {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.wg-progress-bit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2%;
+  height: 2px;
+  background: var(--focus);
+}
+.wg-progress.infinite .wg-progress-bit {
+  animation: wg-progress 4s linear infinite;
+}
+.wg-progress.discrete .wg-progress-bit {
+  transition: width 100ms linear;
+}
+:root[data-theme='hc'] .wg-progress-bit {
+  background: var(--widget-border);
+}
+@keyframes wg-progress {
+  from {
+    transform: translateX(0%) scaleX(1);
+  }
+  50% {
+    transform: translateX(2500%) scaleX(3);
+  }
+  to {
+    transform: translateX(4900%) scaleX(1);
+  }
+}
+
+/* ------------------------------------------------------------------ sash */
+
+.wg-sash {
+  position: absolute;
+  z-index: 35;
+  touch-action: none;
+}
+.wg-sash.vertical {
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: ew-resize;
+}
+.wg-sash.horizontal {
+  left: 0;
+  right: 0;
+  height: 4px;
+  cursor: ns-resize;
+}
+.wg-sash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;
+  transition: background-color 0.1s ease-out;
+}
+.wg-sash.hover::before,
+.wg-sash.active::before {
+  background: var(--focus);
+}
+html.wg-sash-dragging-v,
+html.wg-sash-dragging-v * {
+  cursor: ew-resize !important;
+}
+html.wg-sash-dragging-h,
+html.wg-sash-dragging-h * {
+  cursor: ns-resize !important;
+}
+html.wg-sash-dragging-v iframe,
+html.wg-sash-dragging-h iframe {
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ dialog */
+
+.wg-dialog-block {
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--shadow);
+}
+/* Light+'s shadow is faint: twice over, it dims the window as much as VS Code does. */
+:root[data-theme='light'] .wg-dialog-block {
+  box-shadow: inset 0 0 0 100vmax var(--shadow);
+}
+
+.wg-dialog {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min-content;
+  min-width: 500px;
+  max-width: 90vw;
+  max-height: 90vh;
+  padding: 10px;
+  border-radius: 3px;
+  background: var(--quick-bg);
+  color: var(--fg);
+  box-shadow: 0 0 8px var(--shadow);
+  line-height: normal;
+  outline: none;
+  animation: wg-fadein 100ms linear;
+}
+:root[data-theme='hc'] .wg-dialog {
+  border: 1px solid var(--widget-border);
+}
+
+.wg-dialog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  height: 22px;
+  padding-bottom: 4px;
+}
+.wg-dialog-title {
+  flex: 1;
+  min-width: 0;
+  padding-left: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg-muted);
+}
+
+.wg-dialog-message-row {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: flex-start;
+  padding: 0 10px;
+}
+.wg-dialog .wg-dialog-icon.codicon {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+  line-height: 48px;
+}
+.wg-dialog.type-info .wg-dialog-icon,
+.wg-dialog.type-question .wg-dialog-icon {
+  color: var(--info);
+}
+.wg-dialog.type-warning .wg-dialog-icon {
+  color: var(--warning);
+}
+.wg-dialog.type-error .wg-dialog-icon {
+  color: var(--error-strong);
+}
+
+.wg-dialog-message-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  max-height: 100%;
+  padding-left: 24px;
+  overflow: auto;
+  overflow-wrap: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.wg-dialog-message {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  margin-bottom: 8px;
+  font-size: 18px;
+  line-height: 22px;
+  white-space: normal;
+}
+.wg-dialog-detail {
+  line-height: 22px;
+  white-space: pre-line;
+}
+.wg-dialog-list {
+  flex-shrink: 0;
+  max-height: 154px;
+  margin-top: 8px;
+  overflow: auto;
+  border: 1px solid var(--widget-border);
+  border-radius: 2px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  outline: none;
+}
+.wg-dialog-list:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+.wg-dialog-list-item {
+  height: 22px;
+  padding: 0 8px;
+  line-height: 22px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wg-dialog-checkbox-row {
+  display: flex;
+  padding-top: 15px;
+}
+
+.wg-dialog-buttons-row {
+  display: flex;
+  flex-shrink: 0;
+  padding: 20px 10px 10px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wg-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-left: 67px;
+  overflow: hidden;
+}
+.wg-dialog-buttons .wg-button {
+  max-width: fit-content;
+  margin: 4px 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------ notifications */
+
+@keyframes wg-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wg-toasts {
+  position: fixed;
+  z-index: 1000;
+  right: 3px;
+  bottom: calc(var(--wg-statusbar-height) + 3px);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  padding: 8px;
+  max-height: calc(100vh - var(--wg-statusbar-height) - 40px);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wg-toast {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 450px;
+  max-width: calc(100vw - 22px);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--notify-bg);
+  box-shadow: 0 0 8px 2px var(--shadow);
+  pointer-events: auto;
+  animation: wg-toast-in 300ms ease-out;
+}
+:root[data-theme='hc'] .wg-toast {
+  border: 1px solid var(--widget-border);
+  box-shadow: none;
+}
+
+.wg-note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 10px 5px;
+  color: var(--fg);
+  line-height: normal;
+  outline: none;
+}
+.wg-note:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+
+.wg-note-main {
+  display: flex;
+  align-items: flex-start;
+  min-height: 22px;
+}
+.wg-note .wg-note-icon.codicon {
+  display: flex;
+  align-items: center;
+  flex: 0 0 16px;
+  height: 22px;
+  padding-left: 4px;
+}
+.wg-note.sev-info .wg-note-icon {
+  color: var(--info);
+}
+.wg-note.sev-warning .wg-note-icon {
+  color: var(--warning);
+}
+.wg-note.sev-error .wg-note-icon {
+  color: var(--error-strong);
+}
+
+.wg-note-message {
+  flex: 1;
+  min-width: 0;
+  margin-left: 6px;
+  line-height: 22px;
+  overflow-wrap: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.wg-note-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 22px;
+  margin-left: 4px;
+  visibility: hidden;
+}
+.wg-note:hover .wg-note-toolbar,
+.wg-note:focus-within .wg-note-toolbar,
+.wg-note.expanded .wg-note-toolbar {
+  visibility: visible;
+}
+
+.wg-note-detail {
+  max-height: 200px;
+  margin-top: 2px;
+  padding: 0 26px 0 26px;
+  overflow: auto;
+  line-height: 20px;
+  color: var(--fg-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.wg-note-details-row {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  padding-left: 26px;
+  overflow: hidden;
+}
+.wg-note-source {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.wg-note-buttons {
+  display: flex;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.wg-note-buttons .wg-button {
+  max-width: 200px;
+  margin: 4px 0 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wg-note-buttons .wg-button:last-child {
+  margin-right: 4px;
+}
+
+.wg-note-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.wg-notify-center {
+  position: fixed;
+  z-index: 1000;
+  right: 8px;
+  bottom: calc(var(--wg-statusbar-height) + 9px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 450px;
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--notify-bg);
+  color: var(--fg);
+  box-shadow: 0 0 8px 2px var(--shadow);
+  animation: wg-fadein 100ms linear;
+}
+:root[data-theme='hc'] .wg-notify-center {
+  border: 1px solid var(--widget-border);
+  box-shadow: none;
+}
+.wg-notify-center-header {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 35px;
+  padding-left: 8px;
+  background: var(--notify-head);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+:root[data-theme='hc'] .wg-notify-center-header {
+  border-bottom: 1px solid var(--widget-border);
+}
+.wg-notify-center-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wg-notify-center-actions {
+  margin-right: 4px;
+}
+.wg-notify-center-list {
+  max-height: 50vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.wg-notify-center-list > .wg-note + .wg-note {
+  border-top: 1px solid var(--notify-head);
+}
+:root[data-theme='hc'] .wg-notify-center-list > .wg-note + .wg-note {
+  border-top-color: var(--widget-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-menu,
+  .wg-toast,
+  .wg-dialog,
+  .wg-notify-center {
+    animation: none;
+  }
+}

@@ -1,0 +1,75 @@
+# Only the files listed below are published. Everything else in this folder (the tests, the mock environment, working
+# notes, local settings, the code of earlier builds) stays on this computer: a new file is ignored until it is listed here.
+/*
+!/.gitignore
+!/.gitattributes
+!/LICENSE
+!/README.md
+!/CHANGELOG.md
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/Install Web Resources Manager.html
+
+# The built bookmarklet and its code.
+!/dist/
+/dist/*
+!/dist/wrm.bookmarklet.txt
+!/dist/wrm.min.js
+
+# The build.
+!/tools/
+/tools/*
+!/tools/build.mjs
+!/tools/install-page.mjs
+
+# Inside docs: the guides, the screenshots and the demo.
+!/docs/
+/docs/*
+!/docs/ARCHITECTURE.md
+!/docs/THIRD-PARTY-NOTICES.md
+!/docs/monaco-ThirdPartyNotices.txt
+!/docs/images/
+!/docs/gallery/
+
+# The source the bookmarklet is built from (src/app/main.tsx and src/boot/bootstrap.ts, and what they import).
+!/src/
+/src/*
+!/src/env.d.ts
+!/src/app/
+/src/app/*
+!/src/app/main.tsx
+!/src/boot/
+!/src/core/
+!/src/dataverse/
+/src/dataverse/*
+!/src/dataverse/common.ts
+!/src/dataverse/forms.ts
+!/src/dataverse/formxml.ts
+!/src/dataverse/solutions.ts
+!/src/dataverse/webresources.ts
+!/src/editor/
+!/src/model/
+/src/model/*
+!/src/model/diff.ts
+!/src/model/model.ts
+!/src/model/names.ts
+!/src/model/store.ts
+!/src/model/types.ts
+!/src/model/workspace.ts
+!/src/ui/
+/src/ui/*
+!/src/ui/commands.ts
+!/src/ui/context.ts
+!/src/ui/editorhost.ts
+!/src/ui/hooks.ts
+!/src/ui/icons.tsx
+!/src/ui/simple.css
+!/src/ui/simple.tsx
+!/src/ui/theme.css
+!/src/ui/workbench.css
+!/src/ui/editors/
+/src/ui/editors/*
+!/src/ui/editors/conflict.tsx
+!/src/ui/editors/dependencyxml.ts
+!/src/ui/widgets/

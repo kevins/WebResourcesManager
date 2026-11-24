@@ -1,0 +1,824 @@
+/* The workbench: VS Code's layout and metrics (title bar 30px, activity bar 48px, tabs 35px, status bar 22px). */
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--editor-bg);
+  color: var(--fg);
+  font: var(--font-size) / 1.4 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+* {
+  box-sizing: border-box;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+::selection {
+  background: var(--selection-bg);
+}
+/* High Contrast draws selected text black on white, as VS Code's editor does there. */
+:root[data-theme='hc'] ::selection {
+  color: var(--selection-fg);
+}
+:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+}
+
+:root {
+  /* Where the widget kit places the quick input (under the title bar) and the toasts (above the status bar). */
+  --wg-titlebar-height: 30px;
+  --wg-statusbar-height: 22px;
+}
+
+.wb {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+.wb-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ---- title bar ---- */
+.wb-titlebar {
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  background: var(--titlebar-bg);
+  color: var(--titlebar-fg);
+  font-size: 13px;
+  border-bottom: 1px solid var(--panel-border);
+  position: relative;
+}
+.wb-titlebar .wb-appicon {
+  width: 35px;
+  display: flex;
+  justify-content: center;
+  color: var(--badge-accent);
+  font-size: 16px;
+}
+.wb-menubar {
+  display: flex;
+  height: 100%;
+}
+.wb-menubar > button {
+  background: none;
+  border: 0;
+  padding: 0 8px;
+  height: 100%;
+  cursor: default;
+  color: inherit;
+  font-size: 13px;
+}
+.wb-menubar > button:hover,
+.wb-menubar > button.open {
+  background: rgba(128, 128, 128, 0.2);
+}
+.wb-command-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(600px, 38vw);
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--widget-border);
+  border-radius: 6px;
+  background: rgba(128, 128, 128, 0.08);
+  color: var(--fg-muted);
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wb-command-center:hover {
+  background: rgba(128, 128, 128, 0.18);
+  color: var(--fg);
+}
+.wb-env-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+}
+.wb-env-badge.prod {
+  background: var(--statusbar-prod-bg);
+  color: #fff;
+}
+.wb-title-right {
+  margin-left: auto;
+  display: flex;
+  height: 100%;
+}
+.wb-title-right > button {
+  width: 46px;
+  height: 100%;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+.wb-title-right > button:hover {
+  background: rgba(128, 128, 128, 0.25);
+}
+.wb-title-right > button.close:hover {
+  background: #e81123;
+  color: #fff;
+}
+.wb-title-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* ---- activity bar ---- */
+.wb-activitybar {
+  width: 48px;
+  flex: none;
+  background: var(--activitybar-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.wb-activitybar button {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  background: none;
+  color: var(--activitybar-inactive);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.wb-activitybar button .codicon {
+  font-size: 24px;
+}
+.wb-activitybar button:hover,
+.wb-activitybar button.active {
+  color: var(--activitybar-fg);
+}
+.wb-activitybar button.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--activitybar-border);
+}
+.wb-activitybar .wb-badge {
+  position: absolute;
+  right: 6px;
+  bottom: 8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--badge-accent);
+  color: #fff;
+  font: 600 9px/16px var(--font);
+  text-align: center;
+}
+
+/* ---- side bar ---- */
+.wb-sidebar {
+  flex: none;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  min-width: 170px;
+  position: relative;
+}
+.wb-view-title {
+  height: 35px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 20px;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: var(--sidebar-title);
+  letter-spacing: 0.02em;
+}
+.wb-view-title .wb-view-actions {
+  margin-left: auto;
+}
+.wb-view-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.wb-section-header {
+  height: 22px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding-right: 8px;
+  border-top: 1px solid var(--section-border);
+}
+.wb-section-header:first-child {
+  border-top: 0;
+}
+.wb-section-header .codicon {
+  font-size: 16px;
+  margin: 0 2px;
+}
+.wb-section-header .wb-view-actions {
+  margin-left: auto;
+  visibility: hidden;
+}
+.wb-section-header:hover .wb-view-actions,
+.wb-section-header:focus-within .wb-view-actions {
+  visibility: visible;
+}
+.wb-view-message {
+  padding: 8px 20px;
+  color: var(--fg-muted);
+  line-height: 1.5;
+}
+.wb-view-message p {
+  margin: 0 0 10px;
+}
+.wb-view-toolbar {
+  padding: 4px 12px 8px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ---- sash ---- */
+.wb-sash-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -2px;
+  width: 4px;
+  z-index: 20;
+}
+.wb-sash-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -2px;
+  height: 4px;
+  z-index: 20;
+}
+
+/* ---- editor area ---- */
+.wb-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.wb-editors {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--editor-bg);
+}
+.wb-tabs {
+  height: 35px;
+  flex: none;
+  display: flex;
+  background: var(--tabs-bg);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+.wb-tabs::-webkit-scrollbar {
+  height: 3px;
+}
+.wb-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 35px;
+  min-width: 80px;
+  max-width: 240px;
+  padding: 0 4px 0 10px;
+  background: var(--tab-inactive-bg);
+  color: var(--tab-inactive-fg);
+  border-right: 1px solid var(--tab-border);
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 13px;
+  flex: none;
+}
+.wb-tab.active {
+  background: var(--tab-active-bg);
+  color: var(--tab-active-fg);
+}
+.wb-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--tab-active-top);
+}
+.wb-tab.preview .wb-tab-label {
+  font-style: italic;
+}
+.wb-tab .wb-tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wb-tab .wb-tab-desc {
+  font-size: 12px;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wb-tab-close {
+  width: 28px;
+  height: 22px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  visibility: hidden;
+  flex: none;
+}
+.wb-tab:hover .wb-tab-close,
+.wb-tab.active .wb-tab-close,
+.wb-tab.dirty .wb-tab-close {
+  visibility: visible;
+}
+.wb-tab-close:hover {
+  background: rgba(128, 128, 128, 0.25);
+}
+.wb-tab.dirty:not(:hover) .wb-tab-close .codicon-close::before {
+  content: '\ea71'; /* codicon circle-filled */
+}
+.wb-tab.dirty:not(:hover) .wb-tab-close .codicon {
+  font-size: 10px;
+}
+.wb-tabs-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  position: sticky;
+  right: 0;
+  background: var(--tabs-bg);
+}
+/* The editor actions stay at the right end of the strip while the tabs scroll under them: a tab brought into view (the
+   active one, when the tabs overflow) ends where they begin, not under them. Their width: 6px of padding on each side,
+   then 22px per button and 4px between buttons. */
+.wb-tabs {
+  --wb-tab-actions: 0;
+  scroll-padding-inline-end: calc(12px + var(--wb-tab-actions) * 26px - min(var(--wb-tab-actions), 1) * 4px);
+}
+.wb-tabs:has(> .wb-tabs-actions .wg-action:nth-child(1)) {
+  --wb-tab-actions: 1;
+}
+.wb-tabs:has(> .wb-tabs-actions .wg-action:nth-child(2)) {
+  --wb-tab-actions: 2;
+}
+.wb-tabs:has(> .wb-tabs-actions .wg-action:nth-child(3)) {
+  --wb-tab-actions: 3;
+}
+.wb-tabs:has(> .wb-tabs-actions .wg-action:nth-child(4)) {
+  --wb-tab-actions: 4;
+}
+.wb-tabs:has(> .wb-tabs-actions .wg-action:nth-child(5)) {
+  --wb-tab-actions: 5;
+}
+.wb-tabs:has(> .wb-tabs-actions .wg-action:nth-child(6)) {
+  --wb-tab-actions: 6;
+}
+.wb-breadcrumbs {
+  height: 22px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--breadcrumb-fg);
+  background: var(--editor-bg);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wb-breadcrumbs .codicon-chevron-right {
+  font-size: 14px;
+  opacity: 0.8;
+}
+.wb-breadcrumbs .crumb {
+  cursor: pointer;
+  padding: 0 2px;
+}
+.wb-breadcrumbs .crumb:hover {
+  color: var(--fg-strong);
+}
+.wb-breadcrumbs .wb-crumb-state {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+}
+.wb-editor-content {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.wb-editor-slot {
+  position: absolute;
+  inset: 0;
+}
+.wb-editor-slot[hidden] {
+  display: none;
+}
+.wb-gutter-added {
+  border-left: 3px solid var(--git-added);
+  margin-left: 3px;
+}
+.wb-gutter-modified,
+.wrm-gutter-modified {
+  border-left: 3px solid #1b81a8;
+  margin-left: 3px;
+}
+.wrm-gutter-added {
+  border-left: 3px solid #487e02;
+  margin-left: 3px;
+}
+.wrm-gutter-deleted {
+  border-left: 4px solid transparent;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left-color: #f14c4c;
+  margin-left: 3px;
+  margin-top: -4px;
+  height: 0 !important;
+}
+
+/* An editor-area page that isn't code (welcome, settings, forms, references…). */
+.wb-page {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  user-select: text;
+}
+.wb-page-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+}
+.wb-page h1 {
+  font-size: 26px;
+  font-weight: 400;
+  margin: 0 0 4px;
+  color: var(--fg-strong);
+}
+.wb-page h2 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 26px 0 8px;
+  color: var(--fg-strong);
+  letter-spacing: 0.02em;
+}
+.wb-page .lede {
+  color: var(--fg-muted);
+  margin: 0 0 16px;
+}
+.wb-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--notify-bg);
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 12px;
+}
+.wb-banner.warning {
+  border-left: 3px solid var(--warning);
+}
+.wb-banner.error {
+  border-left: 3px solid var(--error-strong);
+}
+.wb-banner.info {
+  border-left: 3px solid var(--info);
+}
+.wb-banner .wb-banner-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.wb-empty-editor {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--fg-muted);
+  user-select: none;
+}
+.wb-empty-editor .watermark {
+  font-size: 120px;
+  opacity: 0.07;
+}
+.wb-empty-editor dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 8px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+.wb-empty-editor dt {
+  text-align: right;
+}
+.wb-empty-editor dd {
+  margin: 0;
+}
+
+/* ---- panel ---- */
+.wb-panel {
+  flex: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border-top: 1px solid var(--panel-border);
+}
+.wb-panel-header {
+  height: 35px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 2px;
+}
+.wb-panel-tab {
+  height: 35px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--panel-title-inactive);
+  cursor: pointer;
+  position: relative;
+}
+.wb-panel-tab.active {
+  color: var(--panel-title-active);
+}
+.wb-panel-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 4px;
+  height: 1px;
+  background: var(--panel-title-active);
+}
+.wb-panel-tab .count {
+  display: inline-block;
+  min-width: 18px;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-size: 11px;
+  line-height: 18px;
+}
+.wb-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  user-select: text;
+}
+.wb-output {
+  font: 12px/18px var(--mono);
+  padding: 4px 16px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.wb-output .trace {
+  opacity: 0.75;
+}
+.wb-output .warn {
+  color: var(--warning);
+}
+.wb-output .error {
+  color: var(--error);
+}
+.wb-output time {
+  opacity: 0.6;
+  margin-right: 8px;
+}
+
+/* ---- status bar ---- */
+.wb-statusbar {
+  height: 22px;
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  background: var(--statusbar-bg);
+  color: var(--statusbar-fg);
+  font-size: 12px;
+  border-top: 1px solid var(--panel-border);
+}
+.wb-statusbar.prod {
+  background: var(--statusbar-prod-bg);
+}
+.wb-statusbar.lost {
+  background: #6c2022;
+}
+.wb-statusbar .left,
+.wb-statusbar .right {
+  display: flex;
+  align-items: stretch;
+}
+.wb-statusbar .right {
+  margin-left: auto;
+}
+.wb-status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wb-status-item:hover {
+  background: var(--statusbar-hover);
+}
+.wb-status-item.remote {
+  background: var(--statusbar-remote-bg);
+  padding: 0 10px;
+}
+.wb-status-item .codicon {
+  font-size: 14px;
+}
+
+/* ---- explorer and other trees ---- */
+.wb-file-icon {
+  width: 16px;
+  display: inline-flex;
+  justify-content: center;
+  font-size: 15px;
+  flex: none;
+}
+.wb-letter-icon {
+  font: 700 9px/16px var(--font);
+  width: 16px;
+  text-align: center;
+  flex: none;
+}
+.wb-scope {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 4px 16px;
+  font-size: 12px;
+}
+.wb-scope button {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  padding: 3px 6px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.wb-scope button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ---- source control: its groups are rows of one tree, headed like the sections of a view, with their count ---- */
+.wb-scm-list {
+  flex: 1;
+  min-height: 0;
+}
+.wb-scm-group {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+.wb-scm-group > .wg-tree-row {
+  flex: 1;
+  min-width: 0;
+}
+.wb-scm-group .wg-tree-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.wb-scm-count {
+  flex: none;
+  margin: 0 12px 0 4px;
+}
+.wb-drop {
+  outline: 1px dashed var(--focus);
+  outline-offset: -2px;
+  background: var(--list-drop);
+}
+.wb-muted {
+  color: var(--fg-muted);
+}
+.wb-mono {
+  font-family: var(--mono);
+}
+.wb-link {
+  color: var(--link);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+}
+.wb-link:hover {
+  text-decoration: underline;
+}
+
+/* ---- simple tables on pages ---- */
+.wb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.wb-table th {
+  text-align: left;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--panel-border);
+  position: sticky;
+  top: 0;
+  background: var(--editor-bg);
+}
+.wb-table td {
+  padding: 3px 8px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+  vertical-align: top;
+}
+.wb-table tr:hover td {
+  background: var(--list-hover);
+}
+.wb-form-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 8px 16px;
+  align-items: start;
+  margin: 10px 0;
+}
+.wb-form-row label {
+  padding-top: 4px;
+  color: var(--fg-strong);
+}
+.wb-hint {
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin-top: 2px;
+}

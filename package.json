@@ -1,0 +1,33 @@
+{
+  "name": "web-resources-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Edge bookmarklet to edit the JavaScript of a Dataverse / Dynamics 365 form right on the form, in VS Code's editor, from your signed-in Dynamics tab",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kevins/WebResourcesManager.git"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs --zopfli",
+    "build:fast": "node tools/build.mjs --fast",
+    "check": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "acorn": "8.19.0",
+    "astring": "1.9.0",
+    "fflate": "0.8.3",
+    "js-beautify": "2.0.3",
+    "monaco-editor": "0.57.0",
+    "preact": "10.29.8"
+  },
+  "devDependencies": {
+    "@gfx/zopfli": "1.0.15",
+    "@xmldom/xmldom": "0.9.12",
+    "esbuild": "0.28.2",
+    "playwright-core": "1.64.1",
+    "terser": "5.51.2",
+    "typescript": "6.0.3"
+  }
+}

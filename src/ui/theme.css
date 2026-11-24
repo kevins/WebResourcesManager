@@ -1,0 +1,378 @@
+/* VS Code's workbench colours (Dark+, Light+, High Contrast), as CSS variables on the manager's own document.
+   Every component uses these, never fixed colours, so the three themes and the editor always match. */
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --fg: #cccccc;
+  --fg-strong: #ffffff;
+  --fg-muted: rgba(204, 204, 204, 0.7);
+  --fg-disabled: rgba(204, 204, 204, 0.45);
+  --icon: #c5c5c5;
+  --focus: #007fd4;
+  /* Selected text outside the editor (pages, Output, dialogs, notifications): the editor's selection colour. */
+  --selection-bg: #264f78;
+  --shadow: rgba(0, 0, 0, 0.36);
+  --link: #3794ff;
+  --error: #f48771;
+  --error-strong: #f14c4c;
+  --warning: #cca700;
+  --info: #3794ff;
+  --success: #89d185;
+
+  --titlebar-bg: #3c3c3c;
+  --titlebar-fg: #cccccc;
+  --activitybar-bg: #333333;
+  --activitybar-fg: #ffffff;
+  --activitybar-inactive: rgba(255, 255, 255, 0.4);
+  --activitybar-border: #ffffff;
+  --sidebar-bg: #252526;
+  --sidebar-title: #bbbbbb;
+  --section-border: rgba(204, 204, 204, 0.2);
+  --editor-bg: #1e1e1e;
+  --editor-fg: #d4d4d4;
+  --tabs-bg: #252526;
+  --tab-active-bg: #1e1e1e;
+  --tab-inactive-bg: #2d2d2d;
+  --tab-active-fg: #ffffff;
+  --tab-inactive-fg: rgba(255, 255, 255, 0.5);
+  --tab-border: #252526;
+  --tab-active-top: transparent;
+  --breadcrumb-fg: rgba(204, 204, 204, 0.8);
+  --panel-bg: #1e1e1e;
+  --panel-border: rgba(128, 128, 128, 0.35);
+  --panel-title-active: #e7e7e7;
+  --panel-title-inactive: rgba(231, 231, 231, 0.6);
+  --statusbar-bg: #007acc;
+  --statusbar-fg: #ffffff;
+  --statusbar-hover: rgba(255, 255, 255, 0.12);
+  --statusbar-remote-bg: #16825d;
+  --statusbar-prod-bg: #a1260d;
+
+  --list-hover: #2a2d2e;
+  --list-active-bg: #04395e;
+  --list-active-fg: #ffffff;
+  --list-inactive-bg: #37373d;
+  --list-focus-outline: #007fd4;
+  --list-highlight: #2aaaff;
+  --list-drop: rgba(0, 127, 212, 0.25);
+  --tree-indent: rgba(88, 88, 88, 0.6);
+
+  --input-bg: #3c3c3c;
+  --input-fg: #cccccc;
+  --input-border: transparent;
+  --input-placeholder: #a6a6a6;
+  --option-active-bg: rgba(0, 127, 212, 0.4);
+  --option-active-border: #007acc;
+  --checkbox-bg: #3c3c3c;
+  --checkbox-border: #6b6b6b;
+
+  --button-bg: #0e639c;
+  --button-fg: #ffffff;
+  --button-hover: #1177bb;
+  --button2-bg: #3a3d41;
+  --button2-fg: #ffffff;
+  --button2-hover: #45494e;
+  --danger-bg: #a1260d;
+  --danger-hover: #be2e10;
+
+  --badge-bg: #4d4d4d;
+  --badge-fg: #ffffff;
+  --badge-accent: #007acc;
+
+  --menu-bg: #252526;
+  --menu-fg: #cccccc;
+  --menu-sel-bg: #04395e;
+  --menu-sel-fg: #ffffff;
+  --menu-sep: #454545;
+  --menu-border: #454545;
+  --quick-bg: #252526;
+  --quick-sel: #04395e;
+  --picker-group: #3794ff;
+  --picker-border: #3f3f46;
+  --notify-bg: #252526;
+  --notify-head: #303031;
+  --widget-border: #454545;
+
+  --scroll: rgba(121, 121, 121, 0.4);
+  --scroll-hover: rgba(100, 100, 100, 0.7);
+  --scroll-active: rgba(191, 191, 191, 0.4);
+
+  --git-modified: #e2c08d;
+  --git-added: #81b88b;
+  --git-untracked: #73c991;
+  --git-deleted: #c74e39;
+  --git-conflict: #e4676b;
+  --git-ignored: #8c8c8c;
+  --git-renamed: #73c991;
+  --unpublished: #cca700;
+
+  --diff-ins: rgba(155, 185, 85, 0.2);
+  --diff-del: rgba(255, 0, 0, 0.2);
+  --match-bg: rgba(234, 92, 0, 0.33);
+  --match-border: transparent;
+
+  --file-js: #cbcb41;
+  --file-ts: #519aba;
+  --file-css: #519aba;
+  --file-html: #e37933;
+  --file-xml: #e37933;
+  --file-img: #a074c4;
+  --file-svg: #ffb13b;
+  --file-resx: #8dc149;
+  --file-xsl: #e37933;
+  --file-xap: #8dc149;
+  --folder: #c09553;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --fg: #616161;
+  --fg-strong: #333333;
+  --fg-muted: rgba(97, 97, 97, 0.85);
+  --fg-disabled: rgba(97, 97, 97, 0.5);
+  --icon: #424242;
+  --focus: #0090f1;
+  --selection-bg: #add6ff;
+  --shadow: rgba(0, 0, 0, 0.16);
+  --link: #006ab1;
+  --error: #a1260d;
+  --error-strong: #e51400;
+  --warning: #bf8803;
+  --info: #1a85ff;
+  --success: #388a34;
+
+  --titlebar-bg: #dddddd;
+  --titlebar-fg: #333333;
+  --activitybar-bg: #2c2c2c;
+  --activitybar-fg: #ffffff;
+  --activitybar-inactive: rgba(255, 255, 255, 0.4);
+  --activitybar-border: #ffffff;
+  --sidebar-bg: #f3f3f3;
+  --sidebar-title: #6f6f6f;
+  --section-border: rgba(97, 97, 97, 0.19);
+  --editor-bg: #ffffff;
+  --editor-fg: #000000;
+  --tabs-bg: #f3f3f3;
+  --tab-active-bg: #ffffff;
+  --tab-inactive-bg: #ececec;
+  --tab-active-fg: #333333;
+  --tab-inactive-fg: rgba(51, 51, 51, 0.7);
+  --tab-border: #f3f3f3;
+  --tab-active-top: transparent;
+  --breadcrumb-fg: rgba(97, 97, 97, 0.8);
+  --panel-bg: #ffffff;
+  --panel-border: rgba(128, 128, 128, 0.35);
+  --panel-title-active: #424242;
+  --panel-title-inactive: rgba(66, 66, 66, 0.75);
+  --statusbar-bg: #007acc;
+  --statusbar-fg: #ffffff;
+  --statusbar-hover: rgba(255, 255, 255, 0.12);
+  --statusbar-remote-bg: #16825d;
+  --statusbar-prod-bg: #a1260d;
+
+  --list-hover: #e8e8e8;
+  --list-active-bg: #0060c0;
+  --list-active-fg: #ffffff;
+  --list-inactive-bg: #e4e6f1;
+  --list-focus-outline: #0090f1;
+  --list-highlight: #0066bf;
+  --list-drop: rgba(0, 144, 241, 0.18);
+  --tree-indent: rgba(169, 169, 169, 0.6);
+
+  --input-bg: #ffffff;
+  --input-fg: #616161;
+  --input-border: #cecece;
+  --input-placeholder: #767676;
+  --option-active-bg: rgba(0, 144, 241, 0.2);
+  --option-active-border: #007acc;
+  --checkbox-bg: #ffffff;
+  --checkbox-border: #919191;
+
+  --button-bg: #007acc;
+  --button-fg: #ffffff;
+  --button-hover: #0062a3;
+  --button2-bg: #5f6a79;
+  --button2-fg: #ffffff;
+  --button2-hover: #4c5561;
+  --danger-bg: #c72e0f;
+  --danger-hover: #a1260d;
+
+  --badge-bg: #c4c4c4;
+  --badge-fg: #333333;
+  --badge-accent: #007acc;
+
+  --menu-bg: #ffffff;
+  --menu-fg: #616161;
+  --menu-sel-bg: #0060c0;
+  --menu-sel-fg: #ffffff;
+  --menu-sep: #d4d4d4;
+  --menu-border: #d4d4d4;
+  --quick-bg: #f3f3f3;
+  --quick-sel: #0060c0;
+  --picker-group: #0066bf;
+  --picker-border: #cccedb;
+  --notify-bg: #f3f3f3;
+  --notify-head: #e7e7e7;
+  --widget-border: #c8c8c8;
+
+  --scroll: rgba(100, 100, 100, 0.4);
+  --scroll-hover: rgba(100, 100, 100, 0.7);
+  --scroll-active: rgba(0, 0, 0, 0.6);
+
+  --git-modified: #895503;
+  --git-added: #587c0c;
+  --git-untracked: #007100;
+  --git-deleted: #ad0707;
+  --git-conflict: #ad0707;
+  --git-ignored: #8e8e90;
+  --git-renamed: #007100;
+  --unpublished: #bf8803;
+
+  --diff-ins: rgba(155, 185, 85, 0.25);
+  --diff-del: rgba(255, 0, 0, 0.18);
+  --match-bg: rgba(234, 92, 0, 0.25);
+  --match-border: transparent;
+
+  --file-js: #b7b73b;
+  --file-ts: #498ba7;
+  --file-css: #498ba7;
+  --file-html: #cc6d2e;
+  --file-xml: #cc6d2e;
+  --file-img: #9068b0;
+  --file-svg: #e6a035;
+  --file-resx: #7fae42;
+  --file-xsl: #cc6d2e;
+  --file-xap: #7fae42;
+  --folder: #b08a4f;
+}
+
+:root[data-theme='hc'] {
+  color-scheme: dark;
+  --fg: #ffffff;
+  --fg-strong: #ffffff;
+  --fg-muted: #ffffff;
+  --fg-disabled: #a5a5a5;
+  --icon: #ffffff;
+  --focus: #f38518;
+  --selection-bg: #ffffff;
+  --selection-fg: #000000;
+  --shadow: transparent;
+  --link: #21a6ff;
+  --error: #f48771;
+  --error-strong: #f48771;
+  --warning: #ff9a00;
+  --info: #3794ff;
+  --success: #89d185;
+
+  --titlebar-bg: #000000;
+  --titlebar-fg: #ffffff;
+  --activitybar-bg: #000000;
+  --activitybar-fg: #ffffff;
+  --activitybar-inactive: #ffffff;
+  --activitybar-border: #f38518;
+  --sidebar-bg: #000000;
+  --sidebar-title: #ffffff;
+  --section-border: #6fc3df;
+  --editor-bg: #000000;
+  --editor-fg: #ffffff;
+  --tabs-bg: #000000;
+  --tab-active-bg: #000000;
+  --tab-inactive-bg: #000000;
+  --tab-active-fg: #ffffff;
+  --tab-inactive-fg: #ffffff;
+  --tab-border: #6fc3df;
+  --tab-active-top: #f38518;
+  --breadcrumb-fg: #ffffff;
+  --panel-bg: #000000;
+  --panel-border: #6fc3df;
+  --panel-title-active: #ffffff;
+  --panel-title-inactive: #ffffff;
+  --statusbar-bg: #000000;
+  --statusbar-fg: #ffffff;
+  --statusbar-hover: rgba(255, 255, 255, 0.2);
+  --statusbar-remote-bg: #000000;
+  --statusbar-prod-bg: #a1260d;
+
+  --list-hover: transparent;
+  --list-active-bg: transparent;
+  --list-active-fg: #ffffff;
+  --list-inactive-bg: transparent;
+  --list-focus-outline: #f38518;
+  --list-highlight: #f38518;
+  --list-drop: rgba(243, 133, 24, 0.3);
+  --tree-indent: #a9a9a9;
+
+  --input-bg: #000000;
+  --input-fg: #ffffff;
+  --input-border: #6fc3df;
+  --input-placeholder: #c8c8c8;
+  --option-active-bg: transparent;
+  --option-active-border: #6fc3df;
+  --checkbox-bg: #000000;
+  --checkbox-border: #6fc3df;
+
+  --button-bg: #000000;
+  --button-fg: #ffffff;
+  --button-hover: #000000;
+  --button2-bg: #000000;
+  --button2-fg: #ffffff;
+  --button2-hover: #000000;
+  --danger-bg: #000000;
+  --danger-hover: #000000;
+
+  --badge-bg: #000000;
+  --badge-fg: #ffffff;
+  --badge-accent: #000000;
+
+  --menu-bg: #000000;
+  --menu-fg: #ffffff;
+  --menu-sel-bg: transparent;
+  --menu-sel-fg: #ffffff;
+  --menu-sep: #6fc3df;
+  --menu-border: #6fc3df;
+  --quick-bg: #000000;
+  --quick-sel: transparent;
+  --picker-group: #ffffff;
+  --picker-border: #6fc3df;
+  --notify-bg: #000000;
+  --notify-head: #000000;
+  --widget-border: #6fc3df;
+
+  --scroll: rgba(111, 195, 223, 0.6);
+  --scroll-hover: rgba(111, 195, 223, 0.8);
+  --scroll-active: #6fc3df;
+
+  --git-modified: #e2c08d;
+  --git-added: #a1e3ad;
+  --git-untracked: #a1e3ad;
+  --git-deleted: #c74e39;
+  --git-conflict: #c74e39;
+  --git-ignored: #a7a8a9;
+  --git-renamed: #a1e3ad;
+  --unpublished: #ff9a00;
+
+  --diff-ins: rgba(155, 185, 85, 0.3);
+  --diff-del: rgba(255, 0, 0, 0.3);
+  --match-bg: transparent;
+  --match-border: #f38518;
+
+  --file-js: #ffffff;
+  --file-ts: #ffffff;
+  --file-css: #ffffff;
+  --file-html: #ffffff;
+  --file-xml: #ffffff;
+  --file-img: #ffffff;
+  --file-svg: #ffffff;
+  --file-resx: #ffffff;
+  --file-xsl: #ffffff;
+  --file-xap: #ffffff;
+  --folder: #ffffff;
+}
+
+:root {
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+  --mono: Consolas, 'Courier New', monospace;
+  --font-size: 13px;
+  --row: 22px;
+}

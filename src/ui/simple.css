@@ -1,0 +1,198 @@
+/* The manager's screen (simple.tsx): a header, the list of scripts, and the editor with its file bar. Colours come
+   from theme.css (Dark+). */
+
+.sm {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--editor-bg);
+  color: var(--fg);
+  font: 13px var(--font);
+}
+
+.sm-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 0 0 12px;
+  background: var(--titlebar-bg);
+  color: var(--titlebar-fg);
+  border-bottom: 1px solid var(--panel-border);
+  flex: none;
+  /* The title bar moves the window: dragging it never selects its text. */
+  user-select: none;
+  touch-action: none;
+}
+.sm-header .codicon-code { color: var(--focus); }
+.sm-title { font-weight: 600; }
+.sm-env { color: var(--fg-muted); }
+.sm-prod { background: var(--statusbar-prod-bg); color: #fff; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 3px; }
+.sm-spacer { flex: 1; }
+.sm-win {
+  width: 46px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: var(--titlebar-fg);
+  cursor: pointer;
+}
+.sm-win:hover { background: rgba(128, 128, 128, 0.25); }
+.sm-win:last-child:hover { background: #e81123; color: #fff; }
+
+.sm-body { flex: 1; display: flex; min-height: 0; position: relative; }
+
+/* While the first scripts are read: a short moving bar in the middle (as on the start screen). */
+.sm-loading { width: 220px; height: 2px; overflow: hidden; background: rgba(128, 128, 128, 0.2); }
+.sm-loading::after { content: ''; display: block; width: 40%; height: 100%; background: var(--focus); animation: sm-loading 1.2s linear infinite; }
+@keyframes sm-loading {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-loading::after { animation: none; width: 100%; opacity: 0.6; }
+}
+
+.sm-side {
+  position: relative;
+  flex: none;
+  display: flex;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--panel-border);
+}
+.sm-side-inner { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.sm-source {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 8px 4px;
+  padding: 5px 8px;
+  border: 1px solid var(--input-border, transparent);
+  border-radius: 2px;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.sm-source span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.sm-source:hover { border-color: var(--focus); }
+.sm-filter { padding: 0 8px 6px; }
+.sm-list { flex: 1; min-height: 0; position: relative; }
+.sm-list > * { position: absolute; inset: 0; }
+.sm-note { padding: 6px 14px; color: var(--fg-muted); }
+.sm-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 12px;
+  border-top: 1px solid var(--panel-border);
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+.sm-foot-dirty { color: var(--git-modified); display: flex; gap: 8px; }
+
+.sm-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px 0 12px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sm-name { flex: none; }
+.sm-folder { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--fg-muted); font-size: 12px; }
+.sm-row.dirty .sm-name { color: var(--git-modified); }
+.sm-row.conflict .sm-name { color: var(--git-conflict); }
+.sm-row.missing { color: var(--fg-disabled); font-style: italic; }
+.sm-row.dep { padding-left: 26px; }
+.sm-group { height: 24px; padding: 8px 12px 0; color: var(--fg-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.sm-mark { flex: none; font-size: 11px; }
+.sm-mark.dirty { color: var(--git-modified); font-size: 14px; }
+.sm-mark.conflict { color: var(--git-conflict); font-weight: 700; }
+.sm-mark.unpub { color: var(--unpublished, var(--info)); }
+
+.sm-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.sm-filebar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 6px 10px 6px 14px;
+  background: var(--tab-active-bg);
+  border-bottom: 1px solid var(--panel-border);
+}
+/* The name and its state come first: the folder gives way, then the name, never the badge. */
+.sm-file { display: flex; align-items: center; gap: 8px; flex: 1 1 260px; min-width: 0; overflow: hidden; white-space: nowrap; }
+.sm-file-name { font-weight: 600; font-size: 14px; flex: 0 1 auto; min-width: 40px; overflow: hidden; text-overflow: ellipsis; }
+.sm-file-folder { color: var(--fg-muted); flex: 0 100 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.sm-state { flex: none; padding: 2px 8px; border-radius: 10px; font-size: 12px; border: 1px solid transparent; white-space: nowrap; }
+/* A long state gives way in a narrow window (cut with …, all of it in its tooltip); Unsaved changes never does. */
+.sm-state.conflict, .sm-state.unpub, .sm-state.pub, .sm-state.working { flex: 0 1 auto; min-width: 72px; overflow: hidden; text-overflow: ellipsis; }
+.sm-state.working { color: var(--info); border-color: currentColor; }
+.sm-state.dirty { color: var(--git-modified); border-color: var(--git-modified); font-weight: 600; }
+.sm-state.conflict { color: var(--git-conflict); border-color: var(--git-conflict); }
+.sm-state.unpub { color: var(--unpublished, var(--info)); border-color: currentColor; }
+.sm-state.pub { color: var(--fg-muted); }
+.sm-state.locked { color: var(--warning); }
+.sm-actions { display: flex; align-items: center; gap: 6px; flex: none; }
+.sm-actions .wg-button { display: inline-flex; align-items: center; gap: 5px; }
+.sm-hint { flex-basis: 100%; color: var(--fg-muted); font-size: 12px; }
+
+.sm-editor { flex: 1; position: relative; min-height: 0; }
+.sm-reading { position: absolute; top: 12px; left: 64px; color: var(--fg-muted); pointer-events: none; }
+.sm-diff { display: flex; flex-direction: column; }
+.sm-diff[hidden] { display: none; }
+.sm-diff-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 14px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  border-bottom: 1px solid var(--panel-border);
+}
+.sm-diff-editor { position: relative; flex: 1; }
+.sm-diff-labels { align-items: center; gap: 10px; }
+.sm-diff-right { margin-left: auto; }
+.sm-diff-hint { color: var(--fg-muted); opacity: 0.8; }
+.sm-diff-inline { color: var(--fg-muted); font-style: italic; }
+.sm-diff-with { background: var(--input-bg); color: var(--fg); border: 1px solid var(--input-border, var(--panel-border)); border-radius: 2px; padding: 1px 4px; font: inherit; }
+.sm-diff-nav { display: flex; gap: 2px; }
+.sm-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 0; border-radius: 4px; background: transparent; color: var(--fg); cursor: pointer; }
+.sm-icon-button:hover { background: var(--toolbar-hover, rgba(128, 128, 128, 0.2)); }
+.sm-icon-button:focus-visible { outline: 1px solid var(--focus); outline-offset: -1px; }
+
+.sm-start {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--fg-muted);
+  text-align: center;
+}
+.sm-start > .codicon { font-size: 56px; opacity: 0.25; }
+.sm-start h2 { margin: 0; color: var(--fg); font-size: 18px; font-weight: 600; }
+.sm-start p { margin: 0; max-width: 460px; line-height: 1.5; }
+.sm-start-buttons { display: flex; gap: 10px; margin-top: 6px; }
+
+/* The history of a script: its versions on the left, the one picked beside the file on the right. */
+.sm-history { position: absolute; inset: 0; display: flex; min-height: 0; }
+.sm-history-list { width: 270px; flex: none; overflow: auto; border-right: 1px solid var(--panel-border); background: var(--sidebar-bg); padding-bottom: 8px; }
+.sm-history-title { padding: 8px 12px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg-muted); }
+.sm-version { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 5px 12px; border: 0; background: transparent; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
+.sm-version:hover { background: var(--list-hover); }
+.sm-version.picked { background: var(--list-inactive-bg); }
+.sm-version.picked:focus-visible, .sm-history-list:focus-within .sm-version.picked { background: var(--list-active-bg); color: var(--list-active-fg); }
+.sm-history-list:focus-within .sm-version.picked .sm-version-when { color: inherit; opacity: 0.85; }
+.sm-version:focus-visible { outline: 1px solid var(--list-focus-outline); outline-offset: -1px; }
+.sm-version .codicon { margin-top: 2px; flex: none; }
+.sm-version-text { display: flex; flex-direction: column; min-width: 0; }
+.sm-version-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-version-when { color: var(--fg-muted); font-size: 12px; }
+.sm-history-foot { padding: 10px 12px; color: var(--fg-muted); font-size: 12px; line-height: 1.5; }
+.sm-history-main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
