@@ -27,5 +27,12 @@ export function rememberTheme(win: Window, t: ThemeName): void {
 /** The theme in effect: 'auto' follows the system's. */
 export const resolveTheme = (t: ThemeName, win: Window): Exclude<ThemeName, 'auto'> => (t === 'auto' ? (win.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : t);
 
-/** The editor's background in each theme (VS Code's Dark+, Light+, High Contrast). */
-export const THEME_BACKGROUND: Record<Exclude<ThemeName, 'auto'>, string> = { dark: '#1e1e1e', light: '#ffffff', hc: '#000000' };
+/**
+ * The screen's colours in each theme (VS Code's Dark+, Light+, High Contrast; ui/theme.css has them all): what the
+ * bootstrap paints before the manager's stylesheet is there, so the window looks like the screen from its first moment.
+ */
+export const SHELL_COLORS: Record<Exclude<ThemeName, 'auto'>, { editor: string; sidebar: string; titlebar: string; title: string; muted: string; border: string; input: string; inputBorder: string; focus: string }> = {
+  dark: { editor: '#1e1e1e', sidebar: '#252526', titlebar: '#3c3c3c', title: '#cccccc', muted: 'rgba(204,204,204,0.7)', border: 'rgba(128,128,128,0.35)', input: '#3c3c3c', inputBorder: 'transparent', focus: '#007fd4' },
+  light: { editor: '#ffffff', sidebar: '#f3f3f3', titlebar: '#dddddd', title: '#333333', muted: 'rgba(97,97,97,0.85)', border: 'rgba(128,128,128,0.35)', input: '#ffffff', inputBorder: '#cecece', focus: '#0090f1' },
+  hc: { editor: '#000000', sidebar: '#000000', titlebar: '#000000', title: '#ffffff', muted: '#ffffff', border: '#6fc3df', input: '#000000', inputBorder: '#6fc3df', focus: '#f38518' },
+};

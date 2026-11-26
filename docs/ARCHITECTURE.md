@@ -14,8 +14,9 @@ favorite (javascript: URL, ≤ 2,000,000 chars)
             ├─ one manager per tab: window.__wrManager (same build toggles, other build is replaced, busy refuses)
             ├─ <div id="wrm-host"><iframe id="wrm-frame"></div>: a window over the page (moved by the screen's title
             │  bar, resized by its 6 px edge on the page, maximized to fill the page; where it was is kept in
-            │  localStorage 'wrm.window') + the minimized pill
-            └─ frame.contentWindow.eval(APP)   (blob: script if eval is forbidden)
+            │  localStorage 'wrm.window') + the minimized pill, and the screen's layout painted into the frame first
+            ├─ startEarly() (core/connect.ts): the connection's first reads, sent from the frame while APP runs
+            └─ frame.contentWindow.eval(APP)   (blob: script if eval is forbidden), once that layout is on screen
                  └─ src/app/main.tsx  runs IN THE FRAME (its own realm, document and styles; origin = the page's)
                       ├─ connect(): WhoAmI, organization, user → Conn (core/connect.ts)
                       ├─ Workspace (model/workspace.ts): state + services
@@ -33,6 +34,12 @@ favorite (javascript: URL, ≤ 2,000,000 chars)
   `toggleMaximized()`, `dragStart/dragTo/dragEnd` with the pointer in the frame's coordinates, `onChange`).
 * The theme the screen was last shown in is kept in localStorage (`wrm.theme`, core/theme.ts): the window's
   background and the screen's first render use it, before the settings (IndexedDB) are read.
+* Running APP takes a few hundred milliseconds, all on the main thread. The bootstrap's reads (`Host.early`) use that
+  time: WhoAmI, the environment's details, the user and the page's form XML. Online (the host is the organization's
+  own) they are all sent at once, for the organization and user the page's client API names. On premises nothing
+  but WhoAmI is sent until it names the page's organization. `connect()` takes an answer only for the same Web API
+  address and the user and organization WhoAmI named, and asks again for any that failed (so a failure is told as
+  usual). Reads only, with the Http client's headers.
 * Opened on a form, the form XML is read at once (App's constructor), and its scripts by name
   (`Workspace.named()`): they open without waiting for the list of every web resource, which `ws.start()` reads
   meanwhile (`ws.restore()` first restores settings and drafts). A solution and all wait for that list.

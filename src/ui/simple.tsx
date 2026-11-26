@@ -5,7 +5,8 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { Signal } from '../core/emitter';
-import { guid, isGuid, isLogicalName, q } from '../core/http';
+import { q } from '../core/http';
+import { pageFormOf } from '../core/pageform';
 import { rememberTheme } from '../core/theme';
 import { ago, base64ToText, decodeText, download, fingerprint, plural } from '../core/util';
 import { FORM_TYPES, formsUsing, getFormXml, listForms, type FormXml } from '../dataverse/forms';
@@ -52,21 +53,6 @@ const byName = (a: WebResource, b: WebResource) => a.name.localeCompare(b.name, 
 /** The table and form the Dynamics page shows (empty when it shows no record). */
 function pageForm(ws: Workspace): { formId: string; table: string } {
   return pageFormOf(ws.conn.xrm);
-}
-
-/** The table and form a page's client API (Xrm) shows (empty when it shows no record). */
-export function pageFormOf(x: any): { formId: string; table: string } {
-  try {
-    const input = x?.Utility?.getPageContext?.()?.input;
-    if (input?.pageType !== 'entityrecord') return { formId: '', table: '' };
-    // The form shown first: the page's input names it only when it was opened with that form.
-    const id = guid(String(x?.Page?.ui?.formSelector?.getCurrentItem?.()?.getId?.() || input.formId || ''));
-    const table = String(input.entityName || '');
-    return { formId: isGuid(id) ? id : '', table: isLogicalName(table) ? table : '' };
-  } catch {
-    // A page without the client API (the maker portal), or another version of it.
-    return { formId: '', table: '' };
-  }
 }
 
 /** The manager's window over the page: moved by its title bar, maximized to fill the page, or restored. */
@@ -869,7 +855,8 @@ function Side({ app }: { app: App }) {
           />
         </div>
       )}
-      {note && <div class="sm-note">{note}</div>}
+      {/* Before anything is listed: placeholder rows, which the scripts take the place of (the middle says what is read). */}
+      {!source && busy ? <SkeletonRows /> : note && <div class="sm-note">{note}</div>}
       {source && !note && !rows.length && (
         <div class="sm-note">{source.kind === 'form' ? (source.scripts.length ? 'No script matches the filter.' : 'This form loads no scripts.') : filter ? 'Nothing matches the filter.' : 'No scripts here.'}</div>
       )}
@@ -1003,6 +990,76 @@ function Start({ app, text }: { app: App; text?: string }) {
         </Button>
       </div>
       {loading && <p class="sm-note">{loading}</p>}
+    </div>
+  );
+}
+
+/** Rows standing in for the scripts while they are read: the list fills in place (bootstrap.ts paints the same ones). */
+const SkeletonRows = () => (
+  <div class="sm-skel" aria-hidden="true">
+    {[0, 1, 2].map((i) => (
+      <div key={i} class="sm-skel-row">
+        <i />
+        <b />
+      </div>
+    ))}
+  </div>
+);
+
+/**
+ * The screen before the manager is ready (connecting, or why it could not): the header, the list and the middle where
+ * they will be, so that nothing moves when the rest comes in (main.tsx; bootstrap.ts paints the same before it).
+ */
+export function Shell({ env, text, error, maximized, onMinimize, onMaximize, onClose }: { env: string; text: string; error?: boolean; maximized?: boolean; onMinimize?: () => void; onMaximize?: () => void; onClose: () => void }) {
+  return (
+    <div class="sm">
+      <div class="sm-header">
+        <Icon name="code" />
+        <span class="sm-title">Web Resources</span>
+        <span class="sm-env">{env}</span>
+        <span class="sm-spacer" />
+        {/* The theme switch, where it will be (it works once the settings are read). */}
+        <button class="sm-win" disabled tabIndex={-1} aria-hidden="true">
+          <Icon name="color-mode" />
+        </button>
+        {onMinimize && (
+          <button class="sm-win" title="Hide (click the bookmark or the floating button to come back)" aria-label="Hide" onClick={onMinimize}>
+            <Icon name="chrome-minimize" />
+          </button>
+        )}
+        {onMaximize && (
+          <button class="sm-win" title={maximized ? 'Restore the window' : 'Maximize: fill the page'} aria-label={maximized ? 'Restore' : 'Maximize'} onClick={onMaximize}>
+            <Icon name={maximized ? 'chrome-restore' : 'chrome-maximize'} />
+          </button>
+        )}
+        <button class="sm-win" title="Close" aria-label="Close" onClick={onClose}>
+          <Icon name="chrome-close" />
+        </button>
+      </div>
+      <div class="sm-body">
+        <div class="sm-side" style={{ width: '300px' }}>
+          <div class="sm-side-inner">
+            <div class="sm-source" aria-hidden="true">
+              <Icon name="list-selection" />
+              <span>{error ? '' : 'Loading…'}</span>
+              <Icon name="chevron-down" />
+            </div>
+            {!error && <SkeletonRows />}
+          </div>
+        </div>
+        <div class="sm-main">
+          <div class="sm-start" aria-busy={error ? undefined : 'true'}>
+            <Icon name="code" />
+            <p class={error ? 'sm-error' : undefined}>{text}</p>
+            {!error && <div class="sm-loading" role="progressbar" aria-label={text} />}
+            {error && (
+              <Button kind="secondary" onClick={onClose}>
+                Close
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

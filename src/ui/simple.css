@@ -52,6 +52,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .sm-loading::after { animation: none; width: 100%; opacity: 0.6; }
+  .sm-skel-row i, .sm-skel-row b { animation: none; }
 }
 
 .sm-side {
@@ -79,6 +80,16 @@
 .sm-source span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .sm-source:hover { border-color: var(--focus); }
 .sm-filter { padding: 0 8px 6px; }
+/* While the scripts are read: placeholder rows they take the place of (bootstrap.ts paints the same before this sheet). */
+.sm-skel { padding-top: 2px; }
+.sm-skel-row { display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 10px 0 14px; }
+.sm-skel-row i, .sm-skel-row b { display: block; border-radius: 4px; background: currentColor; opacity: 0.12; animation: sm-skel 1.4s ease-in-out infinite alternate; }
+.sm-skel-row i { width: 14px; height: 14px; border-radius: 3px; }
+.sm-skel-row b { height: 8px; width: 46%; }
+.sm-skel-row:nth-child(2) b { width: 62%; }
+.sm-skel-row:nth-child(3) b { width: 38%; }
+@keyframes sm-skel { to { opacity: 0.22; } }
+.sm-error { color: var(--error); }
 .sm-list { flex: 1; min-height: 0; position: relative; }
 .sm-list > * { position: absolute; inset: 0; }
 .sm-note { padding: 6px 14px; color: var(--fg-muted); }
@@ -176,6 +187,8 @@
   text-align: center;
 }
 .sm-start > .codicon { font-size: 56px; opacity: 0.25; }
+/* The icons of the header, the list and the middle keep their room before the icon font is loaded: nothing moves then. */
+.sm-header > .codicon, .sm-win > .codicon, .sm-source > .codicon, .sm-start > .codicon { display: inline-block; flex: none; width: 1em; height: 1em; }
 .sm-start h2 { margin: 0; color: var(--fg); font-size: 18px; font-weight: 600; }
 .sm-start p { margin: 0; max-width: 460px; line-height: 1.5; }
 .sm-start-buttons { display: flex; gap: 10px; margin-top: 6px; }

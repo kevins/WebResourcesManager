@@ -15,8 +15,9 @@ import { registerFormatting } from '../editor/formatprovider';
 import { registerJsNavigation } from '../editor/jsnav';
 import { monaco } from '../editor/monaco';
 import '../ui/theme.css';
-import { getFormXml, type FormXml } from '../dataverse/forms';
-import { createApp, pageFormOf, SimpleApp } from '../ui/simple';
+import { formXmlOf, getFormXml, type FormXml } from '../dataverse/forms';
+import { pageFormOf } from '../core/pageform';
+import { createApp, Shell, SimpleApp } from '../ui/simple';
 
 declare global {
   interface Window {
@@ -67,30 +68,49 @@ async function start(): Promise<void> {
     return;
   }
   const w = where(host.page);
-  render(<Splash text={`Connecting to ${host.page.location.host}…`} />, document.body);
+  // The screen's layout from now on, as the bootstrap painted it: connecting, then the form's scripts fill it in place.
+  const hw = host.win;
+  const shell = (text: string, error = false) =>
+    render(
+      <Shell
+        env={host.page.location.host}
+        text={text}
+        error={error}
+        maximized={!!hw?.maximized()}
+        onMinimize={() => host.minimize()}
+        onMaximize={hw ? () => (hw.toggleMaximized(), shell(text, error)) : undefined}
+        onClose={() => host.close()}
+      />,
+      document.body,
+    );
+  document.getElementById('wrm-skel')?.remove();
+  shell(`Connecting to ${host.page.location.host}…`);
   void ensureIconFont();
   let ws: Workspace;
   // The page's form is read as soon as the environment is known, beside the connection's own reads.
   let earlyForm: { formId: string; form: Promise<FormXml> } | null = null;
   try {
     const conn = await connect(host.page, w, {
-      verified: (http, xrm) => {
+      early: host.early,
+      verified: (http, xrm, early) => {
         const id = pageFormOf(xrm).formId;
         if (!id) return;
-        const form = getFormXml(http, id);
+        // Read by the bootstrap already, mostly (read again here if that read failed).
+        const row = early?.form?.formId === id ? early.form.row : null;
+        const form = row ? row.then((r) => (r ? formXmlOf(id, r) : getFormXml(http, id))) : getFormXml(http, id);
         form.catch(() => undefined); // read again by the screen, which says why when it fails
         earlyForm = { formId: id, form };
       },
     });
+    host.early = null;
     ws = new Workspace(conn);
   } catch (e) {
-    render(<Splash text={`Web Resources Manager could not connect: ${explain(e)}`} error onClose={() => host.close()} />, document.body);
+    shell(`Web Resources Manager could not connect: ${explain(e)}`, true);
     host.ready({ busy: () => false, teardown: () => render(null, document.body) });
     return;
   }
   ws.settings.value = { ...ws.settings.value, theme };
   // The window over the page: its title bar (in the screen) moves and maximizes it.
-  const hw = host.win;
   const maximized = new Signal(hw ? hw.maximized() : false);
   if (hw) hw.onChange = (m) => (maximized.value = m);
   const frame = hw ? { maximized, toggleMaximized: () => hw.toggleMaximized(), dragStart: (x: number, y: number) => hw.dragStart(x, y), dragTo: (x: number, y: number) => hw.dragTo(x, y), dragEnd: () => hw.dragEnd() } : undefined;

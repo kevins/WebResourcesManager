@@ -1,5 +1,14 @@
 # Changes
 
+## Unreleased
+
+* **Opens without a jump**: the window shows its layout (title bar, list, loading bar) from the first frame, in the
+  theme it was last shown in, and the form's scripts fill it in place.
+* **Starts sooner**: who you are, the environment and the form are read while the manager's own code is still
+  starting, so a form's first script shows two round trips to the server sooner (about 30% sooner in a test with
+  150 ms per request). Reads only. On premises nothing else is read until the server has confirmed that it answers
+  for the page's organization.
+
 ## 1.0.0 (November 2026)
 
 The first release: a bookmarklet to edit the JavaScript of a Dataverse (Dynamics 365, Power Apps) form right on the

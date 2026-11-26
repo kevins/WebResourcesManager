@@ -7,8 +7,8 @@
 // Clicking the bookmark again hides or shows the running manager (the same build), or replaces a manager of another
 // build. A manager that is saving or publishing is never torn down: the click says to wait.
 
-import { keyOf, where } from '../core/connect';
-import { THEME_BACKGROUND, cachedTheme, resolveTheme } from '../core/theme';
+import { keyOf, startEarly, where, type Early } from '../core/connect';
+import { SHELL_COLORS, cachedTheme, resolveTheme } from '../core/theme';
 
 /** The manager itself, as text (tools/build.mjs puts it here): it is run inside the frame, never on the page. */
 declare const __APP__: string;
@@ -31,6 +31,8 @@ interface Instance {
 export interface Host {
   page: Window;
   key: string;
+  /** The connection's first reads, started before the manager's code ran (connect takes them; null once taken). */
+  early: Early | null;
   version: string;
   build: string;
   /** The app is ready: its callbacks for the bookmark's next clicks. */
@@ -113,7 +115,8 @@ void (() => {
 
   const doc = page.document;
   // The window opens in the theme it was last shown in (no dark flash before a light screen).
-  const bg = THEME_BACKGROUND[resolveTheme(cachedTheme(page), page)];
+  const shellColors = SHELL_COLORS[resolveTheme(cachedTheme(page), page)];
+  const bg = shellColors.editor;
   const hostEl = doc.createElement('div');
   hostEl.id = 'wrm-host';
   hostEl.setAttribute('style', `all:initial;position:fixed;left:0;top:0;width:100%;height:100%;z-index:${Z};display:block;box-sizing:border-box;background:transparent`);
@@ -342,13 +345,33 @@ void (() => {
     remove();
     return alert('Web Resources Manager could not open its window on this page.');
   }
+  // The screen's layout, painted before the manager's code (a few megabytes) runs: the header, the list with its rows to
+  // come, the middle with its loading bar, in the theme it was last shown in. main.tsx takes it away as it shows the same
+  // (ui/simple.tsx Shell), so nothing moves: things only fill in.
+  const c = shellColors;
+  const where_ = page.location.host.replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+  const font = "-apple-system,BlinkMacSystemFont,'Segoe WPC','Segoe UI',system-ui,'Ubuntu','Droid Sans',sans-serif";
+  const css =
+    `html,body{margin:0;height:100%;overflow:hidden;background:${c.editor}}#wrm-skel{position:fixed;inset:0;display:flex;flex-direction:column;font:13px/1.4 ${font};color:${c.title}}#wrm-skel *{box-sizing:border-box}` +
+    `.k-h{flex:none;display:flex;align-items:center;gap:8px;height:34px;padding-left:12px;background:${c.titlebar};border-bottom:1px solid ${c.border}}.k-h i{width:16px;height:16px}.k-h b{font-weight:600}.k-h span{color:${c.muted}}` +
+    `.k-b{flex:1;display:flex;min-height:0}.k-s{flex:none;width:300px;background:${c.sidebar};border-right:1px solid ${c.border}}.k-src{margin:8px 8px 4px;height:29px;border:1px solid ${c.inputBorder};border-radius:2px;background:${c.input}}` +
+    `.k-rows{padding-top:2px}.k-row{display:flex;align-items:center;gap:8px;height:24px;padding:0 10px 0 14px}.k-row i,.k-row b{display:block;background:currentColor;opacity:.12;border-radius:4px}.k-row i{width:14px;height:14px;border-radius:3px}.k-row b{height:8px;width:46%}.k-row:nth-child(2) b{width:62%}.k-row:nth-child(3) b{width:38%}` +
+    `.k-m{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;color:${c.muted};text-align:center}.k-m i{width:56px;height:56px}.k-m p{margin:0;line-height:1.5}` +
+    `.k-l{width:220px;height:2px;overflow:hidden;background:rgba(128,128,128,.2)}.k-l::after{content:'';display:block;width:40%;height:100%;background:${c.focus};animation:k 1.2s linear infinite}@keyframes k{from{transform:translateX(-100%)}to{transform:translateX(250%)}}@media (prefers-reduced-motion:reduce){.k-l::after{animation:none;width:100%;opacity:.6}}`;
   fdoc.open();
-  fdoc.write('<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Web Resources Manager</title></head><body></body></html>');
+  fdoc.write(
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Web Resources Manager</title><style>${css}</style></head><body>` +
+      `<div id="wrm-skel" aria-hidden="true"><div class="k-h"><i></i><b>Web Resources</b><span>${where_}</span></div><div class="k-b"><div class="k-s"><div class="k-src"></div><div class="k-rows">${'<div class="k-row"><i></i><b></b></div>'.repeat(3)}</div></div>` +
+      `<div class="k-m"><i></i><p>Connecting to ${where_}…</p><div class="k-l"></div></div></div></div></body></html>`,
+  );
   fdoc.close();
+  // Who the user is, the environment and the page's form are read from now on, while the manager's code runs.
+  const early = startEarly(page, w, fw);
 
   const host: Host = {
     page,
     key,
+    early,
     version: __VERSION__,
     build: __BUILD__,
     ready(a) {
@@ -379,18 +402,22 @@ void (() => {
 
   // The app's text is named once only: tools/build.mjs puts it in that one place.
   const APP: string = __APP__;
-  try {
-    // Indirect eval in the frame's own realm: the manager's globals, styles and editor live in the frame.
-    fw.eval(APP);
-  } catch (e) {
-    if ((e as Error)?.name !== 'EvalError') {
-      remove();
-      return alert('Web Resources Manager could not start: ' + ((e as Error)?.message || e));
+  const run = () => {
+    try {
+      // Indirect eval in the frame's own realm: the manager's globals, styles and editor live in the frame.
+      fw.eval(APP);
+    } catch (e) {
+      if ((e as Error)?.name !== 'EvalError') {
+        remove();
+        return alert('Web Resources Manager could not start: ' + ((e as Error)?.message || e));
+      }
+      // The page forbids eval: load the manager as a script from a blob: address instead.
+      const s = fdoc.createElement('script');
+      s.src = fw.URL.createObjectURL(new fw.Blob([APP], { type: 'text/javascript' }));
+      s.onerror = () => host.fail('This page does not allow Web Resources Manager to run.');
+      fdoc.head.appendChild(s);
     }
-    // The page forbids eval: load the manager as a script from a blob: address instead.
-    const s = fdoc.createElement('script');
-    s.src = fw.URL.createObjectURL(new fw.Blob([APP], { type: 'text/javascript' }));
-    s.onerror = () => host.fail('This page does not allow Web Resources Manager to run.');
-    fdoc.head.appendChild(s);
-  }
+  };
+  // Once the layout above is on screen: running the code takes a moment, and nothing is painted meanwhile.
+  page.requestAnimationFrame(() => page.setTimeout(run, 0));
 })();

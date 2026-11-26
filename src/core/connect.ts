@@ -10,6 +10,7 @@
 //     environment's address, and never stores, shows or exports it (as Unmanaged Layer Scanner does).
 
 import { DvError, Http, guid, isGuid } from './http';
+import { pageFormOf } from './pageform';
 
 /** Host names of Dataverse environments in every cloud (commercial, GCC, GCC High, DoD, China). */
 export const DATAVERSE_HOST = /\.(dynamics\.com|microsoftdynamics\.us|dynamics\.cn|appsplatform\.us|microsoftdynamics\.de)$/i;
@@ -184,7 +185,92 @@ export interface ConnectOptions {
    * Called once the environment answering is known to be the page's (after WhoAmI), before the rest of the connection
    * is read: what the page shows can be read from then on, beside those reads.
    */
-  verified?: (http: Http, xrm: any) => void;
+  verified?: (http: Http, xrm: any, early: Early | null) => void;
+  /** The first reads, started by the bootstrap before the manager's code ran (startEarly): their answers are taken. */
+  early?: Early | null;
+}
+
+/** The signed-in user, as the page's client API says ('' when it doesn't say). */
+function pageUserId(xrm: any): string {
+  try {
+    const id = guid(xrm?.Utility?.getGlobalContext?.()?.userSettings?.userId);
+    return isGuid(id) ? id : '';
+  } catch {
+    return '';
+  }
+}
+
+/** The Web API version of an environment page: 9.0 and 9.1 servers don't have v9.2. */
+function apiVersionOf(xrm: any): string {
+  try {
+    const m = /^(\d+)\.(\d+)/.exec(String(xrm?.Utility?.getGlobalContext?.()?.getVersion?.() || ''));
+    if (m && Number(m[1]) === 9 && Number(m[2]) < 2) return `${m[1]}.${m[2]}`;
+  } catch {
+    /* the client API of another page type */
+  }
+  return '9.2';
+}
+
+/**
+ * The connection's first reads, started by the bootstrap as the bookmark is clicked, while the manager's code (a few
+ * megabytes) is still being run: WhoAmI, then (only once the environment answering is the page's own) its details, the
+ * user, and the form the page shows. connect() and the screen take these answers instead of asking again; any that
+ * failed (or a session that expired) is asked again the usual way. Reads only, sent as the Http client sends them.
+ */
+export interface Early {
+  /** The Web API address they were read from (connect takes them only for the same). */
+  api: string;
+  /** WhoAmI's answer, null unless it came and is the page's organization. */
+  who: Promise<any | null>;
+  /** The environment's details, its organization's and the user's rows, read for the organization and user named. */
+  details: Promise<{ orgId: string; userId: string; cur: any | null; org: any | null; user: any | null } | null>;
+  /** The latest saved row of the page's form (formxml, name, objecttypecode, versionnumber). */
+  form: { formId: string; row: Promise<any | null> } | null;
+}
+
+/** `net`: the window whose fetch sends them (the manager's frame, as the Http client's requests are sent). */
+export function startEarly(page: Window, w: Where, net: Window & typeof globalThis): Early | null {
+  if (w.kind !== 'env') return null;
+  try {
+    const xrm = findXrm(page);
+    const api = `${page.location.origin}${orgPathOf(page)}/api/data/v${apiVersionOf(xrm)}/`;
+    const get = (path: string): Promise<any | null> =>
+      net
+        .fetch(api + path, {
+          credentials: 'same-origin',
+          cache: 'no-store',
+          redirect: 'manual',
+          headers: { Accept: 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0', 'x-ms-sw-skipcache': '1', 'If-None-Match': 'null' },
+          signal: net.AbortSignal?.timeout?.(180_000),
+        })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
+    const pageOrg = pageOrgId(xrm);
+    const pageUser = pageUserId(xrm);
+    const who = get('WhoAmI()')
+      .then((x) => {
+        const orgId = guid(x?.OrganizationId);
+        return isGuid(guid(x?.UserId)) && isGuid(orgId) && (!pageOrg || pageOrg === orgId) ? x : null;
+      })
+      .catch(() => null);
+    // Online the host is the organization's own, so the rest is asked at once, beside WhoAmI, for the user and the
+    // organization the page names (connect takes the answers only when WhoAmI names the same). Elsewhere (on-premises,
+    // where an address can answer for another organization) nothing else is asked before WhoAmI said it is the page's.
+    const atOnce = DATAVERSE_HOST.test(page.location.hostname) && !!pageOrg && !!pageUser;
+    const ids: Promise<{ orgId: string; userId: string } | null> = atOnce ? Promise.resolve({ orgId: pageOrg, userId: pageUser }) : who.then((x) => (x ? { orgId: guid(x.OrganizationId), userId: guid(x.UserId) } : null));
+    const details = ids
+      .then((i) =>
+        i
+          ? Promise.all([get(CURRENT_ORG), get(`organizations(${i.orgId})?$select=name,languagecode,maxuploadfilesize`), get(`systemusers(${i.userId})?$select=fullname,domainname`)]).then(([cur, org, user]) => ({ ...i, cur, org, user }))
+          : null,
+      )
+      .catch(() => null);
+    const formId = pageFormOf(xrm).formId;
+    const form = formId ? { formId, row: ids.then((i) => (i ? get(`systemforms(${formId})/Microsoft.Dynamics.CRM.RetrieveUnpublished()?$select=formxml,name,objecttypecode,versionnumber`) : null)).catch(() => null) } : null;
+    return { api, who, details, form };
+  } catch {
+    return null;
+  }
 }
 
 /** Connects to the environment of `page`: reads who the user is and what the organization is. */
@@ -203,19 +289,14 @@ export async function connect(page: Window, w: Where, o: ConnectOptions = {}): P
     kind = 'maker';
     envId = w.envId;
   } else {
-    let version = '9.2';
-    try {
-      const v = String(seenXrm?.Utility?.getGlobalContext?.()?.getVersion?.() || '');
-      const m = /^(\d+)\.(\d+)/.exec(v);
-      if (m && Number(m[1]) === 9 && Number(m[2]) < 2) version = `${m[1]}.${m[2]}`;
-    } catch {
-      /* the client API of another page type */
-    }
-    http = new Http(page.location.origin + orgPath, { kind: 'session' }, version);
+    http = new Http(page.location.origin + orgPath, { kind: 'session' }, apiVersionOf(seenXrm));
     kind = 'env';
   }
 
-  const who = await http.get('WhoAmI()', { label: 'Who am I' });
+  // The bootstrap's reads (startEarly) are taken when they went to this same address; a read of them that failed is
+  // asked again here, so its failure is told as usual (an expired session, say).
+  const early = kind === 'env' && o.early?.api === http.api ? o.early : null;
+  const who = (early && (await early.who)) || (await http.get('WhoAmI()', { label: 'Who am I' }));
   const userId = guid(who.UserId);
   const orgId = guid(who.OrganizationId);
   if (!isGuid(userId) || !isGuid(orgId)) throw new DvError('Dataverse did not say who you are (WhoAmI).', 0, 'whoami');
@@ -229,20 +310,24 @@ export async function connect(page: Window, w: Where, o: ConnectOptions = {}): P
       'org',
     );
   try {
-    o.verified?.(http, seenXrm);
+    o.verified?.(http, seenXrm, early);
   } catch {
     /* the caller's early reads are a nicety */
   }
   // A version without the function has no type to tell. Any other failure leaves the type unknown, and an unknown type
   // is treated as Production: a failed read never skips a Production confirmation.
   let typeUnknown = false;
+  const read = early ? await early.details : null;
+  // Only answers for the user and organization WhoAmI named.
+  const got = read && read.orgId === orgId && read.userId === userId ? read : null;
   const [cur, orgRow, user] = await Promise.all([
-    http.get(CURRENT_ORG, { label: 'Environment details' }).catch((e) => {
-      typeUnknown = !noTypeFunction(e);
-      return null;
-    }),
-    http.get(`organizations(${orgId})?$select=name,languagecode,maxuploadfilesize`, { label: 'Organization settings' }).catch(() => null),
-    http.get(`systemusers(${userId})?$select=fullname,domainname`, { label: 'Your user' }).catch(() => null),
+    got?.cur ??
+      http.get(CURRENT_ORG, { label: 'Environment details' }).catch((e) => {
+        typeUnknown = !noTypeFunction(e);
+        return null;
+      }),
+    got?.org ?? http.get(`organizations(${orgId})?$select=name,languagecode,maxuploadfilesize`, { label: 'Organization settings' }).catch(() => null),
+    got?.user ?? http.get(`systemusers(${userId})?$select=fullname,domainname`, { label: 'Your user' }).catch(() => null),
   ]);
   const detail = cur?.Detail || {};
   const host = new URL(http.origin).hostname.toLowerCase();

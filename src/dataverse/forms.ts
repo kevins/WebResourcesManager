@@ -103,7 +103,11 @@ export interface FormXml {
 /** A form's latest saved XML. */
 export async function getFormXml(http: Http, id: string): Promise<FormXml> {
   if (!isGuid(guid(id))) throw new Error('Not a form id.');
-  const r = await readForm(http, guid(id));
+  return formXmlOf(id, await readForm(http, guid(id)));
+}
+
+/** A form's row as readForm reads it (the bootstrap's early read of the page's form too: core/connect.ts startEarly). */
+export function formXmlOf(id: string, r: any): FormXml {
   return { id: guid(id), name: String(r.name || ''), table: String(r.objecttypecode || ''), xml: String(r.formxml || ''), modifiedOn: String(r.versionnumber ?? ''), etag: etagOf(r) };
 }
 
